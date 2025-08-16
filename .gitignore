@@ -1,0 +1,41 @@
+# Python cache / build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Repo2MD runtime artifacts
+repos/
+exports/
+who-am-ai/
+*_export.md
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Poetry
+.poetry/
+# If you don't want to version lock file, uncomment:
+# poetry.lock
