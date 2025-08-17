@@ -132,28 +132,9 @@ def save_to_md(output_filename: str, repo_name: str, tree_str: str, file_content
     if not output_filename.endswith(".md"):
         output_filename += ".md"
 
-    ext_to_lang = {
-        ".py": "python", ".js": "javascript", ".ts": "typescript", ".tsx": "typescript",
-        ".jsx": "javascript", ".java": "java", ".kt": "kotlin", ".go": "go", ".rs": "rust",
-        ".php": "php", ".html": "html", ".htm": "html", ".css": "css", ".json": "json",
-        ".yml": "yaml", ".yaml": "yaml", ".md": "markdown", ".sql": "sql", ".sh": "bash"
-    }
-
+    content = generate_md_content(repo_name, tree_str, file_contents)
     with open(output_filename, "w", encoding="utf-8") as f:
-        f.write(f"# 📦 Repo2MD Export: {repo_name}\n\n")
-        f.write("## 📂 프로젝트 트리\n")
-        f.write("```\n")
-        f.write(tree_str)
-        f.write("\n```\n\n")
-        f.write("## 📜 선택된 파일 코드\n\n")
-
-        for rel_path, content in sorted(file_contents.items()):
-            ext = os.path.splitext(rel_path)[1].lower()
-            lang = ext_to_lang.get(ext, "")
-            f.write(f"### `{rel_path}`\n")
-            f.write(f"```{lang}\n")
-            f.write(content)
-            f.write("\n```\n\n")
+        f.write(content)
 
     print(f"🎉 '{output_filename}' 파일이 생성되었습니다.")
     return output_filename
@@ -164,3 +145,32 @@ def cleanup_repo(repo_name: str):
     if os.path.isdir(repo_name):
         print(f"🧹 '{repo_name}' 디렉토리를 정리합니다.")
         shutil.rmtree(repo_name, ignore_errors=True)
+
+def generate_md_content(repo_name: str, tree_str: str, file_contents: dict) -> str:
+    """선택된 파일들을 Markdown 문자열로 생성하여 반환"""
+    # 확장자별 언어 매핑
+    ext_to_lang = {
+        ".py": "python", ".js": "javascript", ".ts": "typescript", ".tsx": "typescript",
+        ".jsx": "javascript", ".java": "java", ".kt": "kotlin", ".go": "go", ".rs": "rust",
+        ".php": "php", ".html": "html", ".htm": "html", ".css": "css", ".json": "json",
+        ".yml": "yaml", ".yaml": "yaml", ".md": "markdown", ".sql": "sql", ".sh": "bash"
+    }
+
+    # StringIO를 사용하거나 간단히 문자열 리스트를 join하는 방식으로 구현 가능
+    md_parts = []
+    md_parts.append(f"# 📦 Repo2MD Export: {repo_name}\n\n")
+    md_parts.append("## 📂 프로젝트 트리\n")
+    md_parts.append("```\n")
+    md_parts.append(tree_str)
+    md_parts.append("\n```\n\n")
+    md_parts.append("## 📜 선택된 파일 코드\n\n")
+
+    for rel_path, content in sorted(file_contents.items()):
+        ext = os.path.splitext(rel_path)[1].lower()
+        lang = ext_to_lang.get(ext, "")
+        md_parts.append(f"### `{rel_path}`\n")
+        md_parts.append(f"```{lang}\n")
+        md_parts.append(content)
+        md_parts.append("\n```\n\n")
+
+    return "".join(md_parts)

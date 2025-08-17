@@ -7,6 +7,7 @@ from app.utils import (
     collect_selected_files,
     save_to_md,
     cleanup_repo,
+    generate_md_content,
 )
 
 def analyze_repo(repo_url: str):
@@ -27,22 +28,20 @@ def analyze_repo(repo_url: str):
     return repo_name, tree_str, exts, dirs, dirs_tree
 
 
-def export_repo(repo_name: str, exts: list, dirs: list):
+def export_repo(repo_name: str, exts: list, dirs: list) -> str | None: # 반환 타입을 str | None으로 변경
     """
-    선택된 확장자/디렉토리에 해당하는 파일만 Markdown으로 변환
+    선택된 확장자/디렉토리에 해당하는 파일의 내용을 Markdown 문자열로 생성
     """
     if not repo_name or not os.path.exists(repo_name):
         return None
 
-    # 파일들 수집
     selected_files = collect_selected_files(repo_name, set(exts), dirs)
 
     if not selected_files:
         print("⚠️ 선택된 조건에 맞는 파일 없음")
         return None
-
-    # 트리 문자열 생성 (문서 앞부분에 넣기 위함)
+    
     tree_str, _ = generate_tree_and_extensions(repo_name)
 
-    md_path = f"{repo_name}_export.md"
-    return save_to_md(md_path, repo_name, tree_str, selected_files)
+    # 파일 저장 대신 문자열 생성 함수 호출
+    return generate_md_content(repo_name, tree_str, selected_files)

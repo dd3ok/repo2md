@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse, JSONResponse
 from app.models import RepoRequest, ExportRequest
 from app.services import analyze_repo, export_repo
@@ -23,29 +23,39 @@ def analyze(req: RepoRequest):
 @app.post("/export/file")
 def export_file(req: ExportRequest):
     """
-    선택된 조건으로 파일(.md) 다운로드
+    선택된 조건으로 파일(.md) 다운로드 (파일 저장 없이)
     """
-    md_path = export_repo(req.repo_name, req.exts, req.dirs)
-    if not md_path:
+    # export_repo는 이제 파일 경로가 아닌 md 콘텐츠 문자열을 반환
+    md_content = export_repo(req.repo_name, req.exts, req.dirs)
+    
+    if not md_content:
         return JSONResponse(status_code=404, content={"error": "repo not found or no files selected"})
-    return FileResponse(md_path, media_type="text/markdown", filename=md_path)
+    
+    # 다운로드될 파일 이름 설정
+    download_filename = f"{req.repo_name}_export.md"
+    
+    # Response 객체를 사용하여 메모리의 내용을 바로 전송
+    return Response(
+        content=md_content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f"attachment; filename={download_filename}"}
+    )
 
 
 @app.post("/export/json")
 def export_json(req: ExportRequest):
     """
-    선택된 조건으로 JSON 응답 반환
+    선택된 조건으로 JSON 응답 반환 (파일 저장 및 읽기 없이)
     """
-    md_path = export_repo(req.repo_name, req.exts, req.dirs)
-    if not md_path:
+    # export_repo는 이제 파일 경로가 아닌 md 콘텐츠 문자열을 반환합니다.
+    md_content = export_repo(req.repo_name, req.exts, req.dirs)
+    
+    if not md_content:
         return JSONResponse(status_code=404, content={"error": "repo not found or no files selected"})
 
-    # 결과 파일 읽어서 JSON으로 반환
-    with open(md_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
+    # 더 이상 파일을 열 필요 없이, 받은 콘텐츠를 바로 사용합니다.
     return {
         "repo_name": req.repo_name,
-        "export_file": md_path,
-        "content": content
+        "export_file": f"{req.repo_name}_export.md", # 파일 이름은 가상으로 생성
+        "content": md_content
     }
