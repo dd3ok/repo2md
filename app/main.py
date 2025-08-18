@@ -38,8 +38,8 @@ def export_file(req: ExportRequest, x_session_id: str = Header(...)):
         headers={"Content-Disposition": f"attachment; filename={req.repo_name}_export.md"}
     )
 
-@app.post("/export/json")
-def export_json(req: ExportRequest, x_session_id: str = Header(...)):
+@app.post("/export/text")
+def export_text(req: ExportRequest, x_session_id: str = Header(...)):
     md_content = export_repo(req.repo_name, req.exts, req.dirs, x_session_id)
     if not md_content:
         raise HTTPException(status_code=404, detail="repo not found or no files selected")

@@ -60,7 +60,7 @@ loadConfig().then(() => {
         extsContainer: document.getElementById('exts-container'),
         extsSelectAll: document.getElementById('exts-select-all'),
         treeContainer: document.getElementById('tree-container'),
-        exportJsonBtn: document.getElementById('export-json-btn'),
+        exportTextBtn: document.getElementById('export-text-btn'),
         exportFileBtn: document.getElementById('export-file-btn'),
         modalOverlay: document.getElementById('modal-overlay'),
         modalClose: document.getElementById('modal-close'),
@@ -150,7 +150,7 @@ loadConfig().then(() => {
     async function handleExport(type) {
         const selectedExts = Array.from(dom.extsContainer.querySelectorAll('.ext-checkbox:checked')).map(el => el.value);
         const selectedDirs = Array.from(dom.treeContainer.querySelectorAll('input[data-type="directory"]:checked')).map(el => el.value);
-        const exportBtn = (type === 'json') ? dom.exportJsonBtn : dom.exportFileBtn;
+        const exportBtn = (type === 'text') ? dom.exportTextBtn : dom.exportFileBtn;
         setLoading(exportBtn, true);
         try {
             const response = await fetch(`${API_BASE_URL}/export/${type}`, {
@@ -255,7 +255,7 @@ loadConfig().then(() => {
         dom.treeContainer.querySelectorAll('input[data-type="directory"]').forEach(cb => { cb.checked = isChecked; });
     });
 
-    dom.exportJsonBtn.addEventListener('click', () => handleExport('json'));
+    dom.exportTextBtn.addEventListener('click', () => handleExport('text'));
     dom.exportFileBtn.addEventListener('click', () => handleExport('file'));
     dom.modalClose.addEventListener('click', () => { dom.modalOverlay.style.display = 'none'; });
     dom.copyButton.addEventListener('click', () => {

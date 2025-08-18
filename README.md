@@ -82,8 +82,8 @@ repo2md/
   - **Header**: `X-Session-Id`
   - **Body**: `{ "repo_name": "...", "exts": [...], "dirs": [...] }`
 
-- `POST /export/json`
-  - 선택된 옵션을 바탕으로 JSON 데이터를 생성하여 반환합니다.
+- `POST /export/text`
+  - 선택된 옵션을 바탕으로 text 데이터를 생성하여 반환합니다.
 
 - `WS /ws/{session_id}`
   - 클라이언트 세션 유지를 위한 WebSocket 엔드포인트입니다.
