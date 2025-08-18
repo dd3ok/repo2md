@@ -9,6 +9,7 @@ from app.utils import (
     cleanup_repo,
     generate_md_content,
 )
+from repos.repo2md.app.utils import get_repo_path
 
 def analyze_repo(repo_url: str):
     """
@@ -32,7 +33,8 @@ def export_repo(repo_name: str, exts: list, dirs: list) -> str | None: # 반환 
     """
     선택된 확장자/디렉토리에 해당하는 파일의 내용을 Markdown 문자열로 생성
     """
-    if not repo_name or not os.path.exists(repo_name):
+    repo_path = get_repo_path(repo_name)
+    if not repo_name or not os.path.exists(repo_path):
         return None
 
     selected_files = collect_selected_files(repo_name, set(exts), dirs)
