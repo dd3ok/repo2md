@@ -45,18 +45,3 @@ def export_repo(repo_name: str, exts: list, dirs: list) -> str | None: # 반환 
 
     # 파일 저장 대신 문자열 생성 함수 호출
     return generate_md_content(repo_name, tree_str, selected_files)
-
-def direct_export(repo_url: str, exts: list, dirs: list) -> tuple[str | None, str | None]:
-    """
-    레포 클론, 분석, 마크다운 생성, 정리까지 한 번에 처리
-    """
-    repo_name = git_clone(repo_url)
-    if not repo_name:
-        return None, None
-    
-    try:
-        md_content = export_repo(repo_name, exts, dirs)
-        return repo_name, md_content
-    finally:
-        # 성공하든 실패하든 클론된 레포는 항상 정리
-        cleanup_repo(repo_name)
