@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse, JSONResponse
-from app.models import RepoRequest, ExportRequest
-from app.services import analyze_repo, export_repo
+from app.models import RepoRequest, ExportRequest, DirectExportRequest
+from app.services import analyze_repo, export_repo, direct_export
 
 app = FastAPI(title="Repo2MD API")
 
@@ -59,3 +59,22 @@ def export_json(req: ExportRequest):
         "export_file": f"{req.repo_name}_export.md", # 파일 이름은 가상으로 생성
         "content": md_content
     }
+
+
+@app.post("/direct-export/file")
+def direct_export_file(req: DirectExportRequest):
+    """
+    Repo URL을 받아 분석 후 바로 MD 파일 다운로드
+    """
+    repo_name, md_content = direct_export(req.repo_url, req.exts, req.dirs)
+
+    if not md_content or not repo_name:
+        return JSONResponse(status_code=404, content={"error": "레포지토리를 처리할 수 없거나 선택된 파일이 없습니다."})
+
+    download_filename = f"{repo_name}_export.md"
+    
+    return Response(
+        content=md_content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f"attachment; filename={download_filename}"}
+    )
