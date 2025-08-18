@@ -1,5 +1,6 @@
+import stat
 import os, subprocess, shutil
-from pathlib import Path
+from pathlib import Path   # ✅ 꼭 필요
 
 # 클론된 레포지토리 관리 기본 디렉토리
 REPOS_DIR = "repos"
@@ -26,12 +27,44 @@ def git_clone(repo_url: str, session_id: str):
         print(f"❌ git clone 실패: {e.stderr}")
         return None
 
+def handle_remove_exception(exc: OSError, path: str, info):
+    """Windows에서 액세스 거부 파일도 강제로 삭제"""
+    try:
+        # 접근 거부나 읽기 전용 파일이라면 권한 해제 후 재시도
+        os.chmod(path, stat.S_IWRITE)
+        os.remove(path)
+        print(f"⚠️ 삭제 재시도 성공: {path}")
+    except Exception as e:
+        print(f"🚨 삭제 실패 무시: {path} ({e})")
+
 def cleanup_session_dir(session_id: str):
-    """세션 디렉토리 전체 정리"""
-    path = os.path.join(REPOS_DIR, session_id)
+    """세션 디렉토리 전체 정리 (폴더까지 완전히 삭제)"""
+    path = os.path.join("repos", session_id)
     if os.path.isdir(path):
-        print(f"🗑 세션 {session_id} 디렉토리 삭제")
-        shutil.rmtree(path, ignore_errors=True)
+        print(f"🗑 세션 {session_id} 디렉토리 삭제 시도: {path}")
+        try:
+            shutil.rmtree(path, onexc=handle_remove_exception)
+            print(f"✅ 세션 {session_id} 폴더 완전 삭제 완료")
+        except Exception as e:
+            print(f"🚨 세션 폴더 삭제 최종 실패: {e}")
+
+def cleanup_all_repos():
+    """repos 루트는 남기고 내부 모든 세션/데이터 디렉토리 삭제"""
+    if os.path.isdir(REPOS_DIR):
+        print(f"🗑 서버 시작/종료: '{REPOS_DIR}' 내부 데이터 전체 삭제")
+        for entry in os.listdir(REPOS_DIR):
+            full_path = os.path.join(REPOS_DIR, entry)
+            try:
+                if os.path.isfile(full_path) or os.path.islink(full_path):
+                    os.remove(full_path)
+                elif os.path.isdir(full_path):
+                    shutil.rmtree(full_path, onexc=handle_remove_exception)
+            except Exception as e:
+                print(f"⚠️ '{full_path}' 삭제 실패: {e}")
+    else:
+        # repos 폴더가 아예 없으면 새로 만들어 둠
+        os.makedirs(REPOS_DIR, exist_ok=True)
+        print(f"📂 '{REPOS_DIR}' 디렉토리 새로 생성됨")
 
 def generate_tree_and_extensions(repo_path: str):
     exts = set()
@@ -87,8 +120,12 @@ def build_dir_tree(path: Path, root_path: Path):
         children = [build_dir_tree(child, root_path) for child in sorted(
             path.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))]
         children = [c for c in children if c]
-        return {"name": path.name, "path": relative_path_str if path != root_path else '.', 
-                "type": "directory", "children": children}
+        return {
+            "name": path.name,
+            "path": relative_path_str if path != root_path else '.',
+            "type": "directory",
+            "children": children
+        }
     else:
         return {"name": path.name, "path": relative_path_str, "type": "file"}
 
@@ -104,10 +141,12 @@ def collect_selected_files(repo_path: str, selected_exts: set, selected_dirs: li
             continue
         if path.is_file():
             relative_path = path.relative_to(root_path)
+            # 디렉토리 필터
             if selected_dirs and '.' not in selected_dirs:
                 parent = str(relative_path.parent).replace('\\', '/')
                 if not any(parent == sel or parent.startswith(sel + '/') for sel in selected_dirs):
                     continue
+            # 확장자 필터
             if selected_exts and path.suffix.lower() not in selected_exts:
                 continue
             try:

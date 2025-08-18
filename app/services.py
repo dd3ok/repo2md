@@ -22,6 +22,7 @@ def export_repo(repo_name: str, exts: list, dirs: list, session_id: str) -> str 
     if not os.path.exists(repo_path):
         return None
     selected_files = collect_selected_files(repo_path, set(exts), dirs)
-    if not selected_files: return None
+    if not selected_files:
+        return None
     tree_str, _ = generate_tree_and_extensions(repo_path)
     return generate_md_content(repo_name, tree_str, selected_files)
