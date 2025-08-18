@@ -194,9 +194,9 @@
         }
     }
 
-    // ✅ 웹소켓 연결
     function connectWebSocket() {
-        ws = new WebSocket(`ws://${window.location.host}/ws/${sessionId}`);
+        const wsProtocol = (window.location.protocol === "https:") ? "wss://" : "ws://";
+        ws = new WebSocket(`${wsProtocol}${window.location.host}/ws/${sessionId}`);
 
         ws.onopen = () => { console.log("🔌 WebSocket 연결됨:", sessionId); };
         ws.onmessage = (event) => {
@@ -211,6 +211,7 @@
             }
         }, 30000);
     }
+
 
     // ✅ 탭 닫을 때 disconnect 알림
     window.addEventListener("beforeunload", () => {
