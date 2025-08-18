@@ -180,6 +180,8 @@ def generate_md_content(repo_name: str, tree_str: str, file_contents: dict) -> s
     }
 
     md_parts = []
+    md_parts.append("아래 프로젝트 트리와 코드를 분석하고 세션 동안 기억해")
+    md_parts.append("이후 모든 답변은 반드시 이 분석을 참조해")
     md_parts.append(f"# {repo_name}\n\n")
     md_parts.append("## 프로젝트 트리\n")
     md_parts.append("```\n")
