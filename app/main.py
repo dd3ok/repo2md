@@ -59,10 +59,3 @@ def export_json(req: ExportRequest):
         "export_file": f"{req.repo_name}_export.md", # 파일 이름은 가상으로 생성
         "content": md_content
     }
-
-# railway 배포용
-if __name__ == "__main__":
-    import os, uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
-    
