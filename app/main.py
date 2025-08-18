@@ -2,6 +2,8 @@ from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse, JSONResponse
 from app.models import RepoRequest, ExportRequest
 from app.services import analyze_repo, export_repo
+import os
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Repo2MD API")
 
@@ -59,3 +61,14 @@ def export_json(req: ExportRequest):
         "export_file": f"{req.repo_name}_export.md", # 파일 이름은 가상으로 생성
         "content": md_content
     }
+
+static_file_path = "static/index.html"
+if os.path.exists(static_file_path):
+    # 루트 경로("/")로 접속 시 static/index.html 파일을 보여줍니다.
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(static_file_path)
+
+    # "/static" 경로를 static 디렉토리에 마운트합니다.
+    # 만약 index.html 안에서 CSS나 JS 파일을 추가로 로드한다면 필요합니다.
+    app.mount("/static", StaticFiles(directory="static"), name="static")

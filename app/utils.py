@@ -90,28 +90,39 @@ def collect_dirs_list(repo_name: str):
 
 
 def build_dir_tree(path: Path, root_path: Path):
-    if path.is_dir() and path.name not in DEFAULT_EXCLUDE_DIRS:
-        # 상대 경로를 이름으로 사용
-        name = os.path.relpath(path, root_path).replace("\\", "/")
-        if name == '.': name = path.name
-        
+    """
+    디렉토리와 파일을 포함하는 트리 구조를 재귀적으로 생성합니다.
+    """
+    if path.name in DEFAULT_EXCLUDE_DIRS:
+        return None
+
+    relative_path_str = os.path.relpath(path, root_path).replace("\\", "/")
+    if relative_path_str == '.':
+        relative_path_str = path.name
+
+    if path.is_dir():
         children = [
-            build_dir_tree(child, root_path) for child in sorted(path.iterdir())
-            if child.is_dir() and child.name not in DEFAULT_EXCLUDE_DIRS
+            build_dir_tree(child, root_path) for child in sorted(path.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
         ]
-        # children이 None이 아닌 경우만 필터링
         children = [c for c in children if c]
 
         return {
-            "name": path.name, # 순수 디렉토리 이름
-            "path": name,     # 루트로부터의 상대 경로
+            "name": path.name,
+            "path": relative_path_str if path != root_path else '.',
+            "type": "directory",
             "children": children
         }
-    return None
+    else:
+        return {
+            "name": path.name,
+            "path": relative_path_str,
+            "type": "file"
+        }
 
 def collect_dirs_tree(repo_name: str):
     root_path = Path(get_repo_path(repo_name))
     return build_dir_tree(root_path, root_path)
+
 
 
 def collect_selected_files(repo_name: str, selected_exts: set, selected_dirs: list):
@@ -122,20 +133,20 @@ def collect_selected_files(repo_name: str, selected_exts: set, selected_dirs: li
     for path in root_path.rglob('*'):
         if any(part in DEFAULT_EXCLUDE_DIRS for part in path.parts):
             continue
+
         if path.is_file():
             relative_path = path.relative_to(root_path)
-            relative_path_str = str(relative_path.parent).replace('\\', '/')
-
-            # 디렉토리 필터링
+            # 디렉토리 필터링 로직 수정
             if selected_dirs:
-                 # 루트 디렉토리('.')를 포함시키고, 선택된 디렉토리로 시작하는지 검사
-                if not any(
-                    relative_path_str == sel or relative_path_str.startswith(sel + '/')
-                    for sel in selected_dirs
-                ):
-                    # 만약 selected_dirs에 루트(보통 빈 문자열이나 '.')가 있다면 모든 파일을 포함해야 함
-                    # 이 로직은 사용자가 'src'를 선택하면 src 하위 모든 것을 포함하도록 개선됨
-                    continue
+                # '.' (루트)가 선택되지 않았을 때만 상세 필터링을 수행
+                if '.' not in selected_dirs:
+                    relative_parent_path_str = str(relative_path.parent).replace('\\', '/')
+                    # 선택된 디렉토리 중 하나에 포함되는지 확인
+                    if not any(
+                        relative_parent_path_str == sel or relative_parent_path_str.startswith(sel + '/')
+                        for sel in selected_dirs
+                    ):
+                        continue
 
             # 확장자 필터링
             if selected_exts and path.suffix.lower() not in selected_exts:
