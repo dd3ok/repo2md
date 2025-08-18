@@ -29,13 +29,7 @@
             flex-direction: column;
             align-items: center;
         }
-        .container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
+        .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 2rem; }
         .header { text-align: center; }
         .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #F9FAFB; }
         .header p { font-size: 1.1rem; color: var(--text-light-color); }
@@ -64,22 +58,16 @@
             transition: background-color 0.2s, transform 0.1s;
             display: inline-flex; align-items: center; gap: 0.5rem;
         }
-        .btn:hover:not(:disabled) {
-            background-color: var(--accent-hover-color);
-            transform: translateY(-1px);
-        }
+        .btn:hover:not(:disabled) { background-color: var(--accent-hover-color); transform: translateY(-1px); }
         .btn:disabled { background-color: #4B5563; cursor: not-allowed; }
         #analysis-result { display: none; flex-direction: column; gap: 1.5rem; }
-        .result-box {
-            background-color: var(--bg-color); border: 1px solid var(--border-color);
-            padding: 1rem; border-radius: 8px; overflow-y: auto;
-        }
+        .result-box { background-color: var(--bg-color); border: 1px solid var(--border-color);
+            padding: 1rem; border-radius: 8px; overflow-y: auto; }
         h2, h3 {
             margin-top: 0; color: #F9FAFB; border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.75rem; margin-bottom: 1rem; font-weight: 600;
         }
-        #exts-container {
-            min-height: 100px; display: grid;
+        #exts-container { min-height: 100px; display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 0.75rem;
         }
@@ -98,217 +86,302 @@
             background-size: contain; background-repeat: no-repeat; background-position: center;
             opacity: 0.8;
         }
-        .dir-item::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239CA3AF'%3E%3Cpath d='M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z'/%3E%3C/svg%3E"); }
-        .file-item::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239CA3AF'%3E%3Cpath d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z'/%3E%3C/svg%3E"); }
-        
+        .dir-item::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%239CA3AF' viewBox='0 0 24 24'%3E%3Cpath d='M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8z'/%3E%3C/svg%3E"); }
+        .file-item::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%239CA3AF' viewBox='0 0 24 24'%3E%3Cpath d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8zM6 20V4h7v5h5v11z'/%3E%3C/svg%3E"); }
         .export-buttons { display: flex; justify-content: flex-end; gap: 1rem; }
-        .loader { width: 18px; height: 18px; border: 2px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader { width: 18px; height: 18px; border: 2px solid #FFF; border-bottom-color: transparent;
+            border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
         #error-message { color: var(--error-color); text-align: center; margin-top: 1rem; display: none; }
-        
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        #modal-content { background: var(--primary-color); padding: 2rem; border-radius: 12px; width: 80%; max-width: 900px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem; }
-        .modal-header h3 { border: none; margin: 0; padding: 0; }
-        #modal-close, #copy-button { background: var(--secondary-color); border: 1px solid var(--border-color); color: var(--text-color); }
-        #markdown-preview { flex-grow: 1; overflow-y: auto; background: var(--bg-color); padding: 1rem; border-radius: 8px; font-size: 0.9rem; font-family: 'SF Mono', 'Consolas', monospace; white-space: pre-wrap; }
-
-        footer { margin-top: 3rem; text-align: center; color: var(--text-light-color); }
-        footer a { color: var(--accent-color); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
-
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            .form-group { flex-direction: column; }
+        #modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7);
+            display:none; justify-content:center; align-items:center; z-index:1000;}
+        #modal-content { background: var(--primary-color); padding: 2rem; border-radius: 12px;
+            width: 80%; max-width: 900px; height: 80vh; display: flex; flex-direction: column; }
+        .modal-header { display:flex; justify-content:space-between; align-items:center;
+            border-bottom: 1px solid var(--border-color); padding-bottom:1rem; margin-bottom:1rem; }
+        .modal-header h3 { border: none; margin:0; padding:0;}
+        #modal-close, #copy-button { background: var(--secondary-color); border:1px solid var(--border-color); color: var(--text-color);}
+        #markdown-preview { flex-grow:1; overflow-y:auto; background:var(--bg-color); padding:1rem;
+            border-radius:8px; font-size:0.9rem; font-family:'SF Mono','Consolas',monospace; white-space:pre-wrap;}
+        footer { margin-top:3rem; text-align:center; color:var(--text-light-color);}
+        footer a { color:var(--accent-color);}
+        .intro {
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--text-light-color);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        }
+        .intro p {
+        margin: 0.3rem 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Repo2MD</h1>
-            <p>Git 저장소를 분석하고 원하는 소스코드만 하나의 마크다운 파일로 변환하세요.</p>
-        </header>
-
-        <main>
-            <div class="card">
-                <h2>1. 저장소 분석</h2>
-                <form id="analyze-form">
-                    <div class="form-group">
-                        <input type="url" id="repo-url-input" placeholder="https://github.com/user/repo.git" required>
-                        <button type="submit" id="analyze-btn" class="btn"><span>분석하기</span></button>
-                    </div>
-                </form>
-                <div id="error-message"></div>
-            </div>
-
-            <div id="analysis-result" class="card">
-                <h2>2. 분석 결과 및 옵션 선택</h2>
-                <p><strong id="repo-name-display"></strong> 저장소 분석이 완료되었습니다. 내보낼 파일의 확장자와 디렉토리를 선택하세요.</p>
-                <div>
-                    <h3>파일 확장자</h3>
-                    <div id="exts-container" class="result-box"></div>
-                </div>
-                <div>
-                    <h3>프로젝트 구조 및 디렉토리/파일 선택</h3>
-                    <div id="tree-container" class="result-box"></div>
-                </div>
-                <div class="export-buttons">
-                    <button id="export-json-btn" class="btn">JSON으로 보기</button>
-                    <button id="export-file-btn" class="btn">파일로 내보내기</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="modal-overlay">
-        <div id="modal-content">
-            <div class="modal-header">
-                <h3>마크다운 결과</h3>
-                <div>
-                    <button id="copy-button" class="btn">클립보드에 복사</button>
-                    <button id="modal-close" class="btn">닫기</button>
-                </div>
-            </div>
-            <pre id="markdown-preview"></pre>
+<div class="container">
+    <header class="header">
+        <h1>Repo2MD</h1>
+        <div class="intro">
+        <p>📂➡️📄 Git 레포 전체 구조 & 코드 → 하나의 Markdown/JSON 으로 변환</p>
+        <p>🤖💬 LLM 컨텍스트로 활용 → 코드 분석/프로젝트 문서화에 유용</p>
         </div>
+    </header>
+    <main>
+        <div class="card">
+            <h2>1. 저장소 분석</h2>
+            <form id="analyze-form">
+                <div class="form-group">
+                    <input type="url" id="repo-url-input" placeholder="https://github.com/user/repo.git" required>
+                    <button type="submit" id="analyze-btn" class="btn"><span>분석하기</span></button>
+                </div>
+            </form>
+            <div id="error-message"></div>
+        </div>
+
+        <div id="analysis-result" class="card">
+            <h2>2. 분석 결과 및 옵션 선택</h2>
+            <p><strong id="repo-name-display"></strong> 저장소 분석이 완료되었습니다.</p>
+            <div>
+                <h3>파일 확장자</h3>
+                <div style="margin-bottom:0.5rem;">
+                    <label><input type="checkbox" id="exts-select-all" checked> 전체 선택</label>
+                </div>
+                <div id="exts-container" class="result-box"></div>
+            </div>
+            <div>
+                <h3>프로젝트 구조 및 디렉토리/파일 선택</h3>
+                <div id="tree-container" class="result-box"></div>
+            </div>
+            <div class="export-buttons">
+                <button id="export-json-btn" class="btn">JSON으로 보기</button>
+                <button id="export-file-btn" class="btn">파일로 내보내기</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="modal-overlay">
+    <div id="modal-content">
+        <div class="modal-header">
+            <h3>마크다운 결과</h3>
+            <div>
+                <button id="copy-button" class="btn">클립보드에 복사</button>
+                <button id="modal-close" class="btn">닫기</button>
+            </div>
+        </div>
+        <pre id="markdown-preview"></pre>
     </div>
-    
-    <footer>
-        <p>Created by <a href="https://github.com/dd3ok" target="_blank" rel="noopener noreferrer">dd3ok</a></p>
-    </footer>
+</div>
 
-    <script>
-        const ENV_CONFIG = {
-            development: "http://127.0.0.1:8000",
-            production: "YOUR_RENDER_API_URL_HERE" 
-        };
-        const API_BASE_URL = (() => (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? ENV_CONFIG.development : ENV_CONFIG.production)();
+<footer>
+    <p>Created by <a href="https://github.com/dd3ok" target="_blank">dd3ok</a></p>
+</footer>
 
-        const dom = {
-            analyzeForm: document.getElementById('analyze-form'),
-            analyzeBtn: document.getElementById('analyze-btn'),
-            repoUrlInput: document.getElementById('repo-url-input'),
-            errorMessage: document.getElementById('error-message'),
-            analysisResult: document.getElementById('analysis-result'),
-            repoNameDisplay: document.getElementById('repo-name-display'),
-            extsContainer: document.getElementById('exts-container'),
-            treeContainer: document.getElementById('tree-container'),
-            exportJsonBtn: document.getElementById('export-json-btn'),
-            exportFileBtn: document.getElementById('export-file-btn'),
-            modalOverlay: document.getElementById('modal-overlay'),
-            modalClose: document.getElementById('modal-close'),
-            markdownPreview: document.getElementById('markdown-preview'),
-            copyButton: document.getElementById('copy-button'),
-        };
+<script>
+    let API_BASE_URL = null;   
+    const sessionId = crypto.randomUUID(); // ✅ 세션 단위 repo 관리
 
-        let analysisData = {};
+    // 서버에서 환경설정 불러오기
+    async function loadConfig() {
+        try {
+            const res = await fetch("/config");
+            if (!res.ok) throw new Error("Config fetch failed");
+            const cfg = await res.json();
+            API_BASE_URL = cfg.API_URL;
+            console.log("✅ Loaded API BASE URL:", API_BASE_URL);
+        } catch (e) {
+            console.error("❌ Failed to load config:", e);
+            API_BASE_URL = "http://127.0.0.1:8000"; // fallback
+        }
+    }
 
-        function setLoading(button, isLoading) {
-            const buttonText = button.querySelector('span');
-            if (isLoading) {
-                button.disabled = true;
-                if(buttonText) buttonText.style.display = 'none';
-                const loader = document.createElement('div');
-                loader.className = 'loader';
-                button.prepend(loader);
-            } else {
-                button.disabled = false;
-                const loader = button.querySelector('.loader');
-                if (loader) loader.remove();
-                if(buttonText) buttonText.style.display = 'inline';
+    const dom = {
+        analyzeForm: document.getElementById('analyze-form'),
+        analyzeBtn: document.getElementById('analyze-btn'),
+        repoUrlInput: document.getElementById('repo-url-input'),
+        errorMessage: document.getElementById('error-message'),
+        analysisResult: document.getElementById('analysis-result'),
+        repoNameDisplay: document.getElementById('repo-name-display'),
+        extsContainer: document.getElementById('exts-container'),
+        extsSelectAll: document.getElementById('exts-select-all'), // ✅ 전체 선택 체크박스
+        treeContainer: document.getElementById('tree-container'),
+        exportJsonBtn: document.getElementById('export-json-btn'),
+        exportFileBtn: document.getElementById('export-file-btn'),
+        modalOverlay: document.getElementById('modal-overlay'),
+        modalClose: document.getElementById('modal-close'),
+        markdownPreview: document.getElementById('markdown-preview'),
+        copyButton: document.getElementById('copy-button'),
+    };
+
+    let analysisData = {};
+
+    function setLoading(button, isLoading) {
+        const buttonText = button.querySelector('span');
+        if (isLoading) {
+            button.disabled = true;
+            if (buttonText) buttonText.style.display = 'none';
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            button.prepend(loader);
+        } else {
+            button.disabled = false;
+            const loader = button.querySelector('.loader');
+            if (loader) loader.remove();
+            if (buttonText) buttonText.style.display = 'inline';
+        }
+    }
+
+    function showError(message) {
+        dom.errorMessage.textContent = message;
+        dom.errorMessage.style.display = 'block';
+    }
+    function hideError() { dom.errorMessage.style.display = 'none'; }
+
+    function createExtCheckbox(id, value, checked = true) {
+        const wrapper = document.createElement('div');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'ext-checkbox'; // ✅ 확장자 개별 체크박스 식별용 클래스
+        checkbox.id = id;
+        checkbox.value = value;
+        checkbox.checked = checked;
+        const labelEl = document.createElement('label');
+        labelEl.htmlFor = id;
+        labelEl.textContent = value;
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(labelEl);
+        return wrapper;
+    }
+
+    function renderInteractiveTree(node, container) {
+        const li = document.createElement('li');
+        const label = document.createElement('label');
+        label.className = 'tree-item-label';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = node.path;
+        checkbox.checked = true;
+        checkbox.dataset.type = node.type;
+        const span = document.createElement('span');
+        span.className = node.type === 'directory' ? 'dir-item' : 'file-item';
+        span.textContent = node.name;
+        label.appendChild(checkbox); label.appendChild(span);
+        li.appendChild(label);
+        if (node.type === 'directory' && node.children?.length > 0) {
+            const ul = document.createElement('ul');
+            node.children.forEach(child => renderInteractiveTree(child, ul));
+            li.appendChild(ul);
+        }
+        container.appendChild(li);
+    }
+
+    function syncExtensionsFromTree() {
+        const checkedFiles = dom.treeContainer.querySelectorAll('input[data-type="file"]:checked');
+        const activeExtensions = new Set();
+        checkedFiles.forEach(fileCheckbox => {
+            const ext = fileCheckbox.value.split('.').pop();
+            if (ext && fileCheckbox.value.includes('.')) {
+                activeExtensions.add(`.${ext}`);
             }
-        }
+        });
+        const allExtCheckboxes = dom.extsContainer.querySelectorAll('.ext-checkbox');
+        allExtCheckboxes.forEach(extCheckbox => {
+            extCheckbox.checked = activeExtensions.has(extCheckbox.value);
+        });
 
-        function showError(message) {
-            dom.errorMessage.textContent = message;
-            dom.errorMessage.style.display = 'block';
-        }
-        
-        function hideError() { dom.errorMessage.style.display = 'none'; }
-        
-        function createExtCheckbox(id, value, checked = true) {
-            const wrapper = document.createElement('div');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = id;
-            checkbox.value = value;
-            checkbox.checked = checked;
-            const labelEl = document.createElement('label');
-            labelEl.htmlFor = id;
-            labelEl.textContent = value;
-            wrapper.appendChild(checkbox);
-            wrapper.appendChild(labelEl);
-            return wrapper;
-        }
-        
-        function renderInteractiveTree(node, container) {
-            const li = document.createElement('li');
-            const label = document.createElement('label');
-            label.className = 'tree-item-label';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = node.path;
-            checkbox.checked = true;
-            checkbox.dataset.type = node.type;
-            const span = document.createElement('span');
-            span.className = node.type === 'directory' ? 'dir-item' : 'file-item';
-            span.textContent = node.name;
-            label.appendChild(checkbox);
-            label.appendChild(span);
-            li.appendChild(label);
-            if (node.type === 'directory' && node.children?.length > 0) {
-                const ul = document.createElement('ul');
-                node.children.forEach(child => renderInteractiveTree(child, ul));
-                li.appendChild(ul);
+        // ✅ 전체선택 체크박스 동기화
+        const allChecked = Array.from(allExtCheckboxes).every(cb => cb.checked);
+        dom.extsSelectAll.checked = allChecked;
+    }
+
+    function checkParentDirs(fileCheckbox) {
+        let parentLi = fileCheckbox.closest('ul')?.closest('li');
+        while (parentLi) {
+            const dirCheckbox = parentLi.querySelector('> label > input[data-type="directory"]');
+            if (dirCheckbox) {
+                dirCheckbox.checked = true;
             }
-            container.appendChild(li);
+            parentLi = parentLi.closest('ul')?.closest('li');
         }
+    }
 
-        function syncExtensionsFromTree() {
-            const checkedFiles = dom.treeContainer.querySelectorAll('input[data-type="file"]:checked');
-            const activeExtensions = new Set();
-            checkedFiles.forEach(fileCheckbox => {
-                const ext = fileCheckbox.value.split('.').pop();
-                if (ext && fileCheckbox.value.includes('.')) {
-                    activeExtensions.add(`.${ext}`);
+    async function handleExport(type) {
+        const selectedExts = Array.from(dom.extsContainer.querySelectorAll('.ext-checkbox:checked')).map(el => el.value);
+        const selectedDirs = Array.from(dom.treeContainer.querySelectorAll('input[data-type="directory"]:checked')).map(el => el.value);
+
+        const exportBtn = (type === 'json') ? dom.exportJsonBtn : dom.exportFileBtn;
+        setLoading(exportBtn, true);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/export/${type}`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Session-Id': sessionId   // ✅ 필수 헤더
+                },
+                body: JSON.stringify({
+                    repo_name: analysisData.repo_name,
+                    exts: selectedExts,
+                    dirs: selectedDirs,
+                })
+            });
+
+            if (!response.ok) throw new Error((await response.json()).detail || '내보내기에 실패했습니다.');
+
+            if (type === 'file') {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none'; a.href = url;
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = `${analysisData.repo_name}_export.md`;
+                if (contentDisposition) {
+                    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                    if (match && match.length > 1) filename = match[1];
                 }
-            });
-
-            const allExtCheckboxes = dom.extsContainer.querySelectorAll('input[type="checkbox"]');
-            allExtCheckboxes.forEach(extCheckbox => {
-                extCheckbox.checked = activeExtensions.has(extCheckbox.value);
-            });
+                a.download = filename;
+                document.body.appendChild(a); a.click();
+                window.URL.revokeObjectURL(url); a.remove();
+            } else {
+                const data = await response.json();
+                dom.markdownPreview.textContent = data.content;
+                dom.modalOverlay.style.display = 'flex';
+            }
+        } catch (error) {
+            showError(`내보내기 오류: ${error.message}`);
+        } finally {
+            setLoading(exportBtn, false);
         }
+    }
 
+    // 초기 실행
+    loadConfig().then(() => {
         dom.analyzeForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideError();
             setLoading(dom.analyzeBtn, true);
             dom.analysisResult.style.display = 'none';
 
-            if (API_BASE_URL === "YOUR_RENDER_API_URL_HERE" && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-                showError("설정 오류: 스크립트에서 프로덕션 API 주소를 설정해야 합니다.");
-                setLoading(dom.analyzeBtn, false);
-                return;
-            }
-
             try {
                 const response = await fetch(`${API_BASE_URL}/analyze`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-Id': sessionId   // ✅ 필수 헤더
+                    },
                     body: JSON.stringify({ repo_url: dom.repoUrlInput.value })
                 });
 
-                if (!response.ok) throw new Error((await response.json()).error || '분석에 실패했습니다.');
-                
+                if (!response.ok) throw new Error((await response.json()).detail || '분석에 실패했습니다.');
+
                 analysisData = await response.json();
                 dom.repoNameDisplay.textContent = analysisData.repo_name;
-                
+
                 dom.extsContainer.innerHTML = '';
                 analysisData.extensions.forEach((ext, i) => {
                     dom.extsContainer.appendChild(createExtCheckbox(`ext-${i}`, ext));
                 });
+                dom.extsSelectAll.checked = true; // 기본 전체선택 true
 
                 dom.treeContainer.innerHTML = '';
                 if (analysisData.dirs_tree) {
@@ -316,10 +389,10 @@
                     renderInteractiveTree(analysisData.dirs_tree, rootUl);
                     dom.treeContainer.appendChild(rootUl);
                 }
-                
+
                 dom.analysisResult.style.display = 'flex';
             } catch (error) {
-                showError(`오류 발생: ${error.message}`);
+                showError(`오류: ${error.message}`);
             } finally {
                 setLoading(dom.analyzeBtn, false);
             }
@@ -331,74 +404,50 @@
                 const li = checkbox.closest('li');
                 if (!li) return;
                 const childCheckboxes = li.querySelectorAll('ul input[type="checkbox"]');
-                childCheckboxes.forEach(child => {
-                    child.checked = checkbox.checked;
-                });
+                childCheckboxes.forEach(child => { child.checked = checkbox.checked; });
                 syncExtensionsFromTree();
             }
         });
-        
+
         dom.extsContainer.addEventListener('change', (e) => {
-             if (e.target.type === 'checkbox') {
+            if (e.target.classList.contains('ext-checkbox')) {
                 const extCheckbox = e.target;
                 const extension = extCheckbox.value;
                 const isChecked = extCheckbox.checked;
-
                 const allFileCheckboxes = dom.treeContainer.querySelectorAll('input[data-type="file"]');
                 allFileCheckboxes.forEach(fileCheckbox => {
                     if (fileCheckbox.value.endsWith(extension)) {
                         fileCheckbox.checked = isChecked;
                     }
                 });
+
+                // ✅ 개별 선택→ 전체선택 상태 갱신
+                const allExts = dom.extsContainer.querySelectorAll('.ext-checkbox');
+                const allChecked = Array.from(allExts).every(cb => cb.checked);
+                dom.extsSelectAll.checked = allChecked;
             }
         });
 
-        async function handleExport(type) {
-            const selectedExts = Array.from(dom.extsContainer.querySelectorAll('input:checked')).map(el => el.value);
-            const selectedDirs = Array.from(dom.treeContainer.querySelectorAll('input[data-type="directory"]:checked')).map(el => el.value);
+        // 전체 선택 로직
+        dom.extsSelectAll.addEventListener('change', () => {
+            const isChecked = dom.extsSelectAll.checked;
 
-            const exportBtn = type === 'json' ? dom.exportJsonBtn : dom.exportFileBtn;
-            setLoading(exportBtn, true);
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/export/${type}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        repo_name: analysisData.repo_name,
-                        exts: selectedExts,
-                        dirs: selectedDirs,
-                    })
-                });
+            // 모든 확장자 체크박스 적용
+            const allExts = dom.extsContainer.querySelectorAll('.ext-checkbox');
+            allExts.forEach(cb => { cb.checked = isChecked; });
 
-                if (!response.ok) throw new Error( (await response.json()).error || '내보내기에 실패했습니다.');
-                
-                if (type === 'file') {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none'; a.href = url;
-                    const contentDisposition = response.headers.get('content-disposition');
-                    let filename = `${analysisData.repo_name}_export.md`;
-                    if (contentDisposition) {
-                        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-                        if (filenameMatch && filenameMatch.length > 1) filename = filenameMatch[1];
-                    }
-                    a.download = filename;
-                    document.body.appendChild(a); a.click();
-                    window.URL.revokeObjectURL(url); a.remove();
-                } else {
-                    const data = await response.json();
-                    dom.markdownPreview.textContent = data.content;
-                    dom.modalOverlay.style.display = 'flex';
-                }
-            } catch (error) {
-                showError(`내보내기 오류: ${error.message}`);
-            } finally {
-                setLoading(exportBtn, false);
-            }
-        }
+            // 모든 파일 체크박스 적용
+            const allFileCheckboxes = dom.treeContainer.querySelectorAll('input[data-type="file"]');
+            allFileCheckboxes.forEach(fileCheckbox => {
+                fileCheckbox.checked = isChecked;
+            });
 
+            // ✅ 모든 디렉토리 체크박스 적용
+            const allDirCheckboxes = dom.treeContainer.querySelectorAll('input[data-type="directory"]');
+            allDirCheckboxes.forEach(dirCheckbox => {
+                dirCheckbox.checked = isChecked;
+            });
+        });
         dom.exportJsonBtn.addEventListener('click', () => handleExport('json'));
         dom.exportFileBtn.addEventListener('click', () => handleExport('file'));
         dom.modalClose.addEventListener('click', () => { dom.modalOverlay.style.display = 'none'; });
@@ -412,8 +461,10 @@
             });
         });
         dom.modalOverlay.addEventListener('click', (e) => {
-            if (e.target === dom.modalOverlay) { dom.modalOverlay.style.display = 'none'; }
+            if (e.target === dom.modalOverlay) dom.modalOverlay.style.display = 'none';
         });
-    </script>
+    });
+</script>
+
 </body>
 </html>
