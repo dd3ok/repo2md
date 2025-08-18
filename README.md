@@ -17,7 +17,7 @@ Git 저장소를 분석하여 전체 구조와 코드 내용을 하나의 마크
 - **Core Logic**: `subprocess` (Git 연동), `pathlib` (파일 시스템)
 
 ## 프로젝트 구조
-
+```
 repo2md/
 ├── app/
 │ ├── main.py # API 엔드포인트, WebSocket 서버
@@ -31,7 +31,7 @@ repo2md/
 ├── pyproject.toml
 ├── requirements.txt
 └── README.md
-
+```
 
 ## 설치 및 실행
 
