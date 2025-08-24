@@ -1,5 +1,6 @@
+// static/index.js
 
-let API_BASE_URL = null;   
+let API_BASE_URL = null;
 const sessionId = crypto.randomUUID(); // ✅ 세션 단위 repo 관리
 let ws = null; // ✅ WebSocket 객체
 
@@ -17,28 +18,39 @@ async function loadConfig() {
     }
 }
 
-// 웹소켓 연결
+// 웹소켓 연결 함수 수정
 function connectWebSocket() {
     const wsProtocol = (window.location.protocol === "https:") ? "wss://" : "ws://";
     ws = new WebSocket(`${wsProtocol}${window.location.host}/ws/${sessionId}`);
 
-    ws.onopen = () => { console.log("🔌 WebSocket 연결됨:", sessionId); };
+    ws.onopen = () => { 
+        console.log("🔌 WebSocket 연결됨:", sessionId); 
+    };
+    
     ws.onmessage = (event) => {
         if (event.data === "pong") console.log("서버 pong 수신");
     };
-    ws.onclose = () => { console.log("❌ WebSocket 닫힘"); };
+    
+    ws.onclose = () => { 
+        console.log("❌ WebSocket 닫힘"); 
+        // 연결이 끊어지면 재연결 시도하지 않음 (세션 종료로 간주)
+    };
+    
+    ws.onerror = (error) => {
+        console.error("WebSocket 에러:", error);
+    };
 
-    // 30초마다 ping
-    setInterval(() => {
+    // 30초마다 ping (연결 유지 확인)
+    const pingInterval = setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send("ping");
+        } else {
+            clearInterval(pingInterval);
         }
     }, 30000);
 }
 
-
-// ✅ 탭 닫을 때 disconnect 알림
-window.addEventListener("beforeunload", () => {
+window.addEventListener("pagehide", (event) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send("disconnect");
         ws.close();
@@ -49,11 +61,9 @@ window.addEventListener("beforeunload", () => {
 loadConfig().then(() => {
     connectWebSocket();
 
-    // 이후 모든 form submit, export 버튼 처리 로직 → 기존 그대로
+    // DOM 캐시
     const dom = {
-        analyzeForm: document.getElementById('analyze-form'),
-        analyzeBtn: document.getElementById('analyze-btn'),
-        repoUrlInput: document.getElementById('repo-url-input'),
+        // 공통
         errorMessage: document.getElementById('error-message'),
         analysisResult: document.getElementById('analysis-result'),
         repoNameDisplay: document.getElementById('repo-name-display'),
@@ -66,11 +76,29 @@ loadConfig().then(() => {
         modalClose: document.getElementById('modal-close'),
         markdownPreview: document.getElementById('markdown-preview'),
         copyButton: document.getElementById('copy-button'),
+
+        // Git URL 분석
+        analyzeForm: document.getElementById('analyze-form'),
+        analyzeBtn: document.getElementById('analyze-btn'),
+        repoUrlInput: document.getElementById('repo-url-input'),
+
+        // ZIP 업로드 분석
+        analyzeZipForm: document.getElementById('analyze-zip-form'),
+        analyzeZipBtn: document.getElementById('analyze-zip-btn'),
+        repoZipInput: document.getElementById('repo-zip-input'),
+        zipProgress: document.getElementById('zip-progress'),
+        fileNameDisplay: document.getElementById('file-name-display'),
     };
+
+    if (dom.analyzeZipBtn) {
+        dom.analyzeZipBtn.disabled = true;
+    }
 
     let analysisData = {};
 
+    // 유틸
     function setLoading(button, isLoading) {
+        if (!button) return;
         const buttonText = button.querySelector('span');
         if (isLoading) {
             button.disabled = true;
@@ -147,6 +175,28 @@ loadConfig().then(() => {
         dom.extsSelectAll.checked = allChecked;
     }
 
+    function renderAnalysis(data) {
+        analysisData = data;
+        dom.repoNameDisplay.textContent = analysisData.repo_name || '';
+
+        // 확장자 렌더
+        dom.extsContainer.innerHTML = '';
+        (analysisData.extensions || []).forEach((ext, i) => {
+            dom.extsContainer.appendChild(createExtCheckbox(`ext-${i}`, ext));
+        });
+        dom.extsSelectAll.checked = true;
+
+        // 트리 렌더
+        dom.treeContainer.innerHTML = '';
+        if (analysisData.dirs_tree) {
+            const rootUl = document.createElement('ul');
+            renderInteractiveTree(analysisData.dirs_tree, rootUl);
+            dom.treeContainer.appendChild(rootUl);
+        }
+
+        dom.analysisResult.style.display = 'flex';
+    }
+
     async function handleExport(type) {
         const selectedExts = Array.from(dom.extsContainer.querySelectorAll('.ext-checkbox:checked')).map(el => el.value);
         const selectedDirs = Array.from(dom.treeContainer.querySelectorAll('input[data-type="directory"]:checked')).map(el => el.value);
@@ -169,7 +219,7 @@ loadConfig().then(() => {
                 const a = document.createElement('a');
                 a.style.display = 'none'; a.href = url;
                 const contentDisposition = response.headers.get('content-disposition');
-                let filename = `${analysisData.repo_name}_export.md`;
+                let filename = `${analysisData.repo_name || 'repo'}_export.md`;
                 if (contentDisposition) {
                     const match = contentDisposition.match(/filename="?([^"]+)"?/);
                     if (match && match.length > 1) filename = match[1];
@@ -189,6 +239,90 @@ loadConfig().then(() => {
         }
     }
 
+    if (dom.repoZipInput && dom.fileNameDisplay && dom.analyzeZipBtn) {
+        dom.repoZipInput.addEventListener('change', function() {
+            const fileInput = this;
+            const fileNameDisplay = dom.fileNameDisplay;
+            const analyzeBtn = dom.analyzeZipBtn;
+            
+            if (fileInput.files && fileInput.files.length > 0) {
+                const selectedFile = fileInput.files[0];
+                
+                // 파일명을 표시 인풋에 설정
+                fileNameDisplay.value = selectedFile.name;
+                
+                // ZIP 파일인지 검증
+                if (selectedFile.name.toLowerCase().endsWith('.zip')) {
+                    // 업로드 후 분석 버튼 활성화
+                    analyzeBtn.disabled = false;
+                    hideError();
+                } else {
+                    // ZIP이 아닌 경우 에러 표시 및 버튼 비활성화
+                    showError('ZIP 확장자(.zip) 파일만 업로드 가능합니다.');
+                    analyzeBtn.disabled = true;
+                }
+            } else {
+                // 파일이 선택되지 않은 경우
+                fileNameDisplay.value = '';
+                analyzeBtn.disabled = true;
+            }
+        });
+
+        // 파일명 표시 인풋 클릭시 파일 선택 다이얼로그 열기
+        dom.fileNameDisplay.addEventListener('click', function() {
+            dom.repoZipInput.click();
+        });
+    }
+
+    // ZIP 업로드 분석 폼 제출
+    if (dom.analyzeZipForm) {
+        dom.analyzeZipForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+            
+            const file = dom.repoZipInput.files[0];
+            if (!file) {
+                showError('파일을 선택해주세요.');
+                return;
+            }
+            
+            setLoading(dom.analyzeZipBtn, true);
+            dom.analysisResult.style.display = 'none';
+            dom.zipProgress.style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch(`${API_BASE_URL}/analyze_zip`, {
+                    method: 'POST',
+                    headers: { 'X-Session-Id': sessionId },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'ZIP 분석에 실패했습니다.');
+                }
+                
+                const data = await response.json();
+                renderAnalysis(data);
+                
+                // 분석 완료 후 폼 리셋
+                dom.fileNameDisplay.value = '';
+                dom.analyzeZipBtn.disabled = true;
+                dom.repoZipInput.value = '';
+                
+            } catch (error) {
+                showError(`오류: ${error.message}`);
+            } finally {
+                dom.zipProgress.style.display = 'none';
+                setLoading(dom.analyzeZipBtn, false);
+            }
+        });
+    }
+
+    // 기존: Git URL 분석
     dom.analyzeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -201,20 +335,8 @@ loadConfig().then(() => {
                 body: JSON.stringify({ repo_url: dom.repoUrlInput.value })
             });
             if (!response.ok) throw new Error((await response.json()).detail || '분석에 실패했습니다.');
-            analysisData = await response.json();
-            dom.repoNameDisplay.textContent = analysisData.repo_name;
-            dom.extsContainer.innerHTML = '';
-            analysisData.extensions.forEach((ext, i) => {
-                dom.extsContainer.appendChild(createExtCheckbox(`ext-${i}`, ext));
-            });
-            dom.extsSelectAll.checked = true;
-            dom.treeContainer.innerHTML = '';
-            if (analysisData.dirs_tree) {
-                const rootUl = document.createElement('ul');
-                renderInteractiveTree(analysisData.dirs_tree, rootUl);
-                dom.treeContainer.appendChild(rootUl);
-            }
-            dom.analysisResult.style.display = 'flex';
+            const data = await response.json();
+            renderAnalysis(data);
         } catch (error) {
             showError(`오류: ${error.message}`);
         } finally {
@@ -222,6 +344,83 @@ loadConfig().then(() => {
         }
     });
 
+        
+    // ZIP 파일 선택 이벤트 리스너 추가
+    dom.repoZipInput.addEventListener('change', function() {
+        const fileInput = this;
+        const fileNameDisplay = dom.fileNameDisplay;
+        const analyzeBtn = dom.analyzeZipBtn;
+        
+        if (fileInput.files && fileInput.files.length > 0) {
+            const selectedFile = fileInput.files[0];
+            
+            // 파일명을 표시 인풋에 설정
+            fileNameDisplay.value = selectedFile.name;
+            
+            // ZIP 파일인지 검증
+            if (selectedFile.name.toLowerCase().endsWith('.zip')) {
+                // 업로드 후 분석 버튼 활성화
+                analyzeBtn.disabled = false;
+                hideError();
+            } else {
+                // ZIP이 아닌 경우 에러 표시 및 버튼 비활성화
+                showError('ZIP 확장자(.zip) 파일만 업로드 가능합니다.');
+                analyzeBtn.disabled = true;
+            }
+        } else {
+            // 파일이 선택되지 않은 경우
+            fileNameDisplay.value = '';
+            fileNameDisplay.placeholder = 'ZIP 파일을 선택해주세요';
+            analyzeBtn.disabled = true;
+        }
+    });
+
+    // 파일명 표시 인풋 클릭시 파일 선택 다이얼로그 열기
+    dom.fileNameDisplay.addEventListener('click', function() {
+        dom.repoZipInput.click();
+    });
+
+    // 신규: ZIP 업로드 분석
+    dom.analyzeZipForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+        
+        // 파일 검증은 change 이벤트에서 이미 처리됨
+        const file = dom.repoZipInput.files[0];
+        
+        setLoading(dom.analyzeZipBtn, true);
+        dom.analysisResult.style.display = 'none';
+        dom.zipProgress.style.display = 'block';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${API_BASE_URL}/analyze_zip`, {
+                method: 'POST',
+                headers: { 'X-Session-Id': sessionId },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error((await response.json()).detail || 'ZIP 분석에 실패했습니다.');
+            const data = await response.json();
+            renderAnalysis(data);
+            
+            // 분석 완료 후 폼 리셋
+            dom.fileNameDisplay.value = '';
+            dom.fileNameDisplay.placeholder = 'ZIP 파일을 선택해주세요';
+            dom.analyzeZipBtn.disabled = true;
+            dom.repoZipInput.value = '';
+            
+        } catch (error) {
+            showError(`오류: ${error.message}`);
+        } finally {
+            dom.zipProgress.style.display = 'none';
+            setLoading(dom.analyzeZipBtn, false);
+        }
+    });
+
+    // 트리 → 확장자 sync
     dom.treeContainer.addEventListener('change', (e) => {
         if (e.target.type === 'checkbox') {
             const li = e.target.closest('li');
@@ -231,6 +430,7 @@ loadConfig().then(() => {
         }
     });
 
+    // 확장자 → 트리 sync
     dom.extsContainer.addEventListener('change', (e) => {
         if (e.target.classList.contains('ext-checkbox')) {
             const extCheckbox = e.target;
@@ -248,6 +448,7 @@ loadConfig().then(() => {
         }
     });
 
+    // 전체 선택
     dom.extsSelectAll.addEventListener('change', () => {
         const isChecked = dom.extsSelectAll.checked;
         dom.extsContainer.querySelectorAll('.ext-checkbox').forEach(cb => { cb.checked = isChecked; });
@@ -255,8 +456,11 @@ loadConfig().then(() => {
         dom.treeContainer.querySelectorAll('input[data-type="directory"]').forEach(cb => { cb.checked = isChecked; });
     });
 
+    // Export 버튼들
     dom.exportTextBtn.addEventListener('click', () => handleExport('text'));
     dom.exportFileBtn.addEventListener('click', () => handleExport('file'));
+
+    // 모달/클립보드
     dom.modalClose.addEventListener('click', () => { dom.modalOverlay.style.display = 'none'; });
     dom.copyButton.addEventListener('click', () => {
         navigator.clipboard.writeText(dom.markdownPreview.textContent).then(() => {

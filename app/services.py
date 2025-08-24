@@ -1,28 +1,63 @@
-import os
-from app.utils import (
-    git_clone, get_session_repo_path,
-    generate_tree_and_extensions, collect_dirs_list,
-    collect_dirs_tree, collect_selected_files,
-    generate_md_content
+# app/services.py
+import subprocess
+import shutil
+from pathlib import Path
+from typing import Tuple
+from .utils import (
+    session_dir, clean_session, guess_repo_name_from_git_url,
+    list_files_and_extensions, unzip_to
 )
 
-def analyze_repo(repo_url: str, session_id: str):
-    """레포 클론하고 세션 repo_path의 정보 반환"""
-    repo_name = git_clone(repo_url, session_id)
-    if not repo_name:
-        return None, None, None, None, None
-    repo_path = get_session_repo_path(session_id, repo_name)
-    tree, exts = generate_tree_and_extensions(repo_path)
-    dirs = collect_dirs_list(repo_path)
-    dirs_tree = collect_dirs_tree(repo_path)
-    return repo_name, tree, exts, dirs, dirs_tree
+def clone_repo_to_session(session_id: str, repo_url: str) -> Tuple[Path, str]:
+    """
+    Clone git repo into a unique dir under session dir.
+    Returns (repo_path, repo_name)
+    """
+    base = session_dir(session_id)
+    repo_name = guess_repo_name_from_git_url(repo_url)
+    target = base / repo_name
 
-def export_repo(repo_name: str, exts: list, dirs: list, session_id: str) -> str | None:
-    repo_path = get_session_repo_path(session_id, repo_name)
-    if not os.path.exists(repo_path):
-        return None
-    selected_files = collect_selected_files(repo_path, set(exts), dirs)
-    if not selected_files:
-        return None
-    tree_str, _ = generate_tree_and_extensions(repo_path)
-    return generate_md_content(repo_name, tree_str, selected_files)
+    if target.exists():
+        shutil.rmtree(target, ignore_errors=True)
+    # shallow clone for speed
+    try:
+        subprocess.run(
+            ["git", "clone", "--depth", "1", repo_url, str(target)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        # cleanup
+        if target.exists():
+            shutil.rmtree(target, ignore_errors=True)
+        msg = e.stderr.strip() or e.stdout.strip() or "git clone failed"
+        raise RuntimeError(msg)
+    return target, repo_name
+
+def analyze_repo_path(repo_path: Path, repo_name: str):
+    tree, exts = list_files_and_extensions(repo_path)
+    return {
+        "repo_name": repo_name,
+        "extensions": exts,
+        "dirs_tree": tree
+    }
+
+def unpack_zip_to_session(session_id: str, uploaded_zip_path: Path) -> Tuple[Path, str]:
+    """
+    Unzip file into session and return (repo_path, repo_name)
+    """
+    base = session_dir(session_id)
+    # clear previous content but keep session folder itself
+    for item in base.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item, ignore_errors=True)
+        else:
+            try:
+                item.unlink()
+            except Exception:
+                pass
+
+    repo_root = unzip_to(base, uploaded_zip_path)
+    repo_name = repo_root.name
+    return repo_root, repo_name

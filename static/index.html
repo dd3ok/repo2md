@@ -1,71 +1,156 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repo2MD - Convert Your Git Repository to a Single Markdown File</title>
+    <title>Repo2MD - Convert Your Git Repository or ZIP to a Single Markdown File</title>
     <link rel="stylesheet" href="/static/index.css">
 </head>
+
 <body>
-<div class="container">
-    <header class="header">
-        <h1>Repo2MD</h1>
-        <div class="intro">
-            <p><a href="https://github.com/dd3ok/repo2md" target="_blank">https://github.com/dd3ok/repo2md</a></p>
-            <p>📂➡️📄 Git 레포 전체 구조 &amp; 코드 → 하나의 마크다운/텍스트 으로 변환</p>
-            <p>🤖💬 LLM 컨텍스트로 활용 → 코드 분석/프로젝트 문서화에 유용</p>
-        </div>
-    </header>
-    <main>
-        <div class="card">
-            <h2>1. 저장소 분석</h2>
-            <form id="analyze-form">
-                <div class="form-group">
-                    <input type="url" id="repo-url-input" placeholder="https://github.com/user/repo.git" required>
-                    <button type="submit" id="analyze-btn" class="btn"><span>분석하기</span></button>
-                </div>
-            </form>
-            <div id="error-message"></div>
-        </div>
+    <div class="container">
+        <header class="header">
+            <h1>Repo2MD</h1>
+            <div class="intro">
+                <p><a href="https://github.com/dd3ok/repo2md" target="_blank">https://github.com/dd3ok/repo2md</a></p>
+                <p>📂➡️📄 Git 레포 전체 구조 & 코드 → 하나의 마크다운/텍스트 으로 변환</p>
+                <p>🤖💬 LLM 컨텍스트로 활용 → 코드 분석/프로젝트 문서화에 유용</p>
+            </div>
+        </header>
 
-        <div id="analysis-result" class="card">
-            <h2>2. 분석 결과 및 옵션 선택</h2>
-            <p><strong id="repo-name-display"></strong> repository에서 export 할 파일을 선택해주세요.</p>
-            <div>
-                <h3>파일 확장자</h3>
-                <div style="margin-bottom:0.5rem;">
-                    <label><input type="checkbox" id="exts-select-all" checked> 전체 선택</label>
+        <main>
+            <!-- 분석 방식 선택 탭 -->
+            <div class="card">
+                <h2>1. 분석 방식 선택</h2>
+                <div id="analyze-tabs" style="display:flex; gap:0.75rem; margin-bottom:1rem;">
+                    <button id="tab-git" class="btn" data-active="true">Git 저장소 URL 분석</button>
+                    <button id="tab-zip" class="btn" data-active="false"
+                        style="background-color: var(--secondary-color); color: var(--text-color);">ZIP 파일 업로드
+                        분석</button>
                 </div>
-                <div id="exts-container" class="result-box"></div>
-            </div>
-            <div>
-                <h3>프로젝트 구조 및 디렉토리/파일 선택</h3>
-                <div id="tree-container" class="result-box"></div>
-            </div>
-            <div class="export-buttons">
-                <button id="export-text-btn" class="btn">텍스트로 보기</button>
-                <button id="export-file-btn" class="btn">파일로 내보내기</button>
-            </div>
-        </div>
-    </main>
-</div>
 
-<div id="modal-overlay">
-    <div id="modal-content">
-        <div class="modal-header">
-            <h3>마크다운 결과</h3>
-            <div>
-                <button id="copy-button" class="btn">클립보드에 복사</button>
-                <button id="modal-close" class="btn">닫기</button>
+                <!-- Git URL 분석 폼 -->
+                <form id="analyze-form" style="display:block;">
+                    <div class="form-group">
+                        <input type="url" id="repo-url-input" placeholder="https://github.com/user/repo.git" required>
+                        <button type="submit" id="analyze-btn" class="btn"><span>분석하기</span></button>
+                    </div>
+                </form>
+
+                <!-- ZIP 업로드 분석 폼 -->
+                <form id="analyze-zip-form" style="display:none;" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <!-- 숨김 파일 인풋 -->
+                        <input type="file" id="repo-zip-input" accept=".zip" required class="file-input-hidden" tabindex="-1">
+                        
+                        <!-- 파일명 표시용 텍스트 인풋 (Git URL 인풋처럼) -->
+                        <input type="text" id="file-name-display" placeholder="ZIP 파일을 선택해주세요" readonly>
+                        
+                        <!-- 파일 선택 버튼 -->
+                        <label for="repo-zip-input" class="btn file-pick-btn">
+                            <span>파일 선택</span>
+                        </label>
+                        
+                        <!-- 업로드/분석 버튼 (초기에 비활성화) -->
+                        <button type="submit" id="analyze-zip-btn" class="btn" disabled>
+                            <span>업로드 후 분석</span>
+                        </button>
+                    </div>
+                    <div id="zip-progress" style="display:none; margin-top:0.75rem; color: var(--text-light-color);">
+                        업로드 중... 잠시만 기다려 주세요.
+                    </div>
+                </form>
+
+
+                <div id="error-message"></div>
             </div>
-        </div>
-        <pre id="markdown-preview"></pre>
+
+            <!-- 분석 결과 -->
+            <div id="analysis-result" class="card">
+                <h2>2. 분석 결과 및 옵션 선택</h2>
+                <p><strong id="repo-name-display"></strong> repository에서 export 할 파일을 선택해주세요.</p>
+
+                <div>
+                    <h3>파일 확장자</h3>
+                    <div style="margin-bottom:0.5rem;">
+                        <label><input type="checkbox" id="exts-select-all" checked> 전체 선택</label>
+                    </div>
+                    <div id="exts-container" class="result-box"></div>
+                </div>
+
+                <div>
+                    <h3>프로젝트 구조 및 디렉토리/파일 선택</h3>
+                    <div id="tree-container" class="result-box"></div>
+                </div>
+
+                <div class="export-buttons">
+                    <button id="export-text-btn" class="btn">텍스트로 보기</button>
+                    <button id="export-file-btn" class="btn">파일로 내보내기</button>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
 
-<footer>
-    <p>Created by <a href="https://github.com/dd3ok" target="_blank">dd3ok</a></p>
-</footer>
-<script defer src="/static/index.js"></script>
+    <!-- 마크다운 미리보기 모달 -->
+    <div id="modal-overlay">
+        <div id="modal-content">
+            <div class="modal-header">
+                <h3>마크다운 결과</h3>
+                <div>
+                    <button id="copy-button" class="btn">클립보드에 복사</button>
+                    <button id="modal-close" class="btn">닫기</button>
+                </div>
+            </div>
+            <pre id="markdown-preview"></pre>
+        </div>
+    </div>
+
+    <footer>
+        <p>Created by <a href="https://github.com/dd3ok" target="_blank">dd3ok</a></p>
+    </footer>
+
+    <script defer src="/static/index.js"></script>
+    <script>
+        (function () {
+            const tabGit = document.getElementById('tab-git');
+            const tabZip = document.getElementById('tab-zip');
+            const formGit = document.getElementById('analyze-form');
+            const formZip = document.getElementById('analyze-zip-form');
+
+            function activateTab(target) {
+                const activeStyle = { bg: 'var(--accent-color)', color: 'var(--bg-color)' };
+                const inactiveStyle = { bg: 'var(--secondary-color)', color: 'var(--text-color)' };
+
+                if (target === 'git') {
+                    tabGit.style.backgroundColor = activeStyle.bg;
+                    tabGit.style.color = activeStyle.color;
+                    tabGit.dataset.active = 'true';
+
+                    tabZip.style.backgroundColor = inactiveStyle.bg;
+                    tabZip.style.color = inactiveStyle.color;
+                    tabZip.dataset.active = 'false';
+
+                    formGit.style.display = 'block';
+                    formZip.style.display = 'none';
+                } else {
+                    tabZip.style.backgroundColor = activeStyle.bg;
+                    tabZip.style.color = activeStyle.color;
+                    tabZip.dataset.active = 'true';
+
+                    tabGit.style.backgroundColor = inactiveStyle.bg;
+                    tabGit.style.color = inactiveStyle.color;
+                    tabGit.dataset.active = 'false';
+
+                    formGit.style.display = 'none';
+                    formZip.style.display = 'block';
+                }
+            }
+
+            tabGit.addEventListener('click', () => activateTab('git'));
+            tabZip.addEventListener('click', () => activateTab('zip'));
+        })();
+    </script>
 </body>
+
 </html>
