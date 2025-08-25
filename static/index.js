@@ -50,6 +50,14 @@ function connectWebSocket() {
     }, 30000);
 }
 
+// 탭 닫기 또는 새로고침 시 소켓 이벤트 발생
+window.addEventListener("beforeunload", (event) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send("disconnect");
+        ws.close();
+    }
+});
+
 window.addEventListener("pagehide", (event) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send("disconnect");

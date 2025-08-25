@@ -22,6 +22,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 세션별로 업로드된 파일 이름을 저장하는 딕셔너리
+uploaded_filenames = {}
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
@@ -32,6 +35,9 @@ def index():
 def get_config(request: Request):
     base = f"{request.url.scheme}://{request.url.netloc}"
     return {"API_URL": base}
+
+# 세션별로 업로드된 파일 이름을 저장하는 딕셔너리
+uploaded_filenames = {}
 
 @app.websocket("/ws/{session_id}")
 async def ws_endpoint(websocket: WebSocket, session_id: str):
@@ -57,6 +63,20 @@ async def ws_endpoint(websocket: WebSocket, session_id: str):
     finally:
         # 연결이 어떤 이유로든 종료되면 세션 폴더 정리
         clean_session(session_id)
+        
+        # 업로드된 ZIP 파일이 있다면 삭제
+        if session_id in uploaded_filenames:
+            temp_dir = Path(tempfile.gettempdir())
+            upload_path = temp_dir / uploaded_filenames[session_id]
+            try:
+                if upload_path.exists():
+                    upload_path.unlink()
+                    print(f"🗑️ 업로드된 ZIP 파일 삭제 완료: {upload_path}")
+            except Exception as e:
+                print(f"❌ 업로드된 ZIP 파일 삭제 중 오류: {e}")
+            # 파일 이름 정보 삭제
+            del uploaded_filenames[session_id]
+        
         print(f"✅ 세션 정리 완료: {session_id}")
 
 @app.post("/analyze", response_model=AnalyzeResponse)
@@ -81,6 +101,9 @@ async def save_upload_file(upload: UploadFile, dest: Path) -> None:
             f.write(chunk)
     await upload.seek(0)
 
+# 세션별로 업로드된 파일 이름을 저장하는 딕셔너리
+uploaded_filenames = {}
+
 @app.post("/analyze_zip", response_model=AnalyzeResponse)
 async def analyze_zip(file: UploadFile = File(...), x_session_id: Optional[str] = Header(None)):
     if not x_session_id:
@@ -88,8 +111,12 @@ async def analyze_zip(file: UploadFile = File(...), x_session_id: Optional[str] 
 
     # 1) 업로드 ZIP은 OS 임시 디렉터리에 저장(세션 폴더 바깥)
     temp_dir = Path(tempfile.gettempdir())
-    upload_name = f"{x_session_id}.zip"  # 세션별 단일 파일명(재업로드 시 교체)
+    # 원본 파일 이름 사용
+    upload_name = file.filename if file.filename else f"{x_session_id}.zip"
     upload_path = temp_dir / upload_name
+
+    # 원본 파일 이름 저장
+    uploaded_filenames[x_session_id] = upload_name
 
     # 2) 저장 (스트리밍)
     try:
@@ -112,6 +139,9 @@ async def analyze_zip(file: UploadFile = File(...), x_session_id: Optional[str] 
         # 5) 업로드 ZIP 즉시 삭제(임시 디렉터리 청소)
         try:
             upload_path.unlink()
+            # 세션 종료 시 파일 이름 정보도 삭제
+            if x_session_id in uploaded_filenames:
+                del uploaded_filenames[x_session_id]
         except Exception:
             pass
 
