@@ -239,7 +239,9 @@ loadConfig().then(() => {
         }
     }
 
-    if (dom.repoZipInput && dom.fileNameDisplay && dom.analyzeZipBtn) {
+    // ZIP 파일 선택 및 업로드 분석 폼 제출 (통합)
+    if (dom.repoZipInput && dom.fileNameDisplay && dom.analyzeZipBtn && dom.analyzeZipForm) {
+        // 파일 선택 인풋 변경 이벤트
         dom.repoZipInput.addEventListener('change', function() {
             const fileInput = this;
             const fileNameDisplay = dom.fileNameDisplay;
@@ -264,6 +266,7 @@ loadConfig().then(() => {
             } else {
                 // 파일이 선택되지 않은 경우
                 fileNameDisplay.value = '';
+                fileNameDisplay.placeholder = 'ZIP 파일을 선택해주세요';
                 analyzeBtn.disabled = true;
             }
         });
@@ -272,10 +275,8 @@ loadConfig().then(() => {
         dom.fileNameDisplay.addEventListener('click', function() {
             dom.repoZipInput.click();
         });
-    }
-
-    // ZIP 업로드 분석 폼 제출
-    if (dom.analyzeZipForm) {
+        
+        // ZIP 업로드 분석 폼 제출 이벤트
         dom.analyzeZipForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideError();
@@ -310,6 +311,7 @@ loadConfig().then(() => {
                 
                 // 분석 완료 후 폼 리셋
                 dom.fileNameDisplay.value = '';
+                dom.fileNameDisplay.placeholder = 'ZIP 파일을 선택해주세요';
                 dom.analyzeZipBtn.disabled = true;
                 dom.repoZipInput.value = '';
                 
@@ -321,7 +323,7 @@ loadConfig().then(() => {
             }
         });
     }
-
+    
     // 기존: Git URL 분석
     dom.analyzeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -341,82 +343,6 @@ loadConfig().then(() => {
             showError(`오류: ${error.message}`);
         } finally {
             setLoading(dom.analyzeBtn, false);
-        }
-    });
-
-        
-    // ZIP 파일 선택 이벤트 리스너 추가
-    dom.repoZipInput.addEventListener('change', function() {
-        const fileInput = this;
-        const fileNameDisplay = dom.fileNameDisplay;
-        const analyzeBtn = dom.analyzeZipBtn;
-        
-        if (fileInput.files && fileInput.files.length > 0) {
-            const selectedFile = fileInput.files[0];
-            
-            // 파일명을 표시 인풋에 설정
-            fileNameDisplay.value = selectedFile.name;
-            
-            // ZIP 파일인지 검증
-            if (selectedFile.name.toLowerCase().endsWith('.zip')) {
-                // 업로드 후 분석 버튼 활성화
-                analyzeBtn.disabled = false;
-                hideError();
-            } else {
-                // ZIP이 아닌 경우 에러 표시 및 버튼 비활성화
-                showError('ZIP 확장자(.zip) 파일만 업로드 가능합니다.');
-                analyzeBtn.disabled = true;
-            }
-        } else {
-            // 파일이 선택되지 않은 경우
-            fileNameDisplay.value = '';
-            fileNameDisplay.placeholder = 'ZIP 파일을 선택해주세요';
-            analyzeBtn.disabled = true;
-        }
-    });
-
-    // 파일명 표시 인풋 클릭시 파일 선택 다이얼로그 열기
-    dom.fileNameDisplay.addEventListener('click', function() {
-        dom.repoZipInput.click();
-    });
-
-    // 신규: ZIP 업로드 분석
-    dom.analyzeZipForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hideError();
-        
-        // 파일 검증은 change 이벤트에서 이미 처리됨
-        const file = dom.repoZipInput.files[0];
-        
-        setLoading(dom.analyzeZipBtn, true);
-        dom.analysisResult.style.display = 'none';
-        dom.zipProgress.style.display = 'block';
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await fetch(`${API_BASE_URL}/analyze_zip`, {
-                method: 'POST',
-                headers: { 'X-Session-Id': sessionId },
-                body: formData
-            });
-
-            if (!response.ok) throw new Error((await response.json()).detail || 'ZIP 분석에 실패했습니다.');
-            const data = await response.json();
-            renderAnalysis(data);
-            
-            // 분석 완료 후 폼 리셋
-            dom.fileNameDisplay.value = '';
-            dom.fileNameDisplay.placeholder = 'ZIP 파일을 선택해주세요';
-            dom.analyzeZipBtn.disabled = true;
-            dom.repoZipInput.value = '';
-            
-        } catch (error) {
-            showError(`오류: ${error.message}`);
-        } finally {
-            dom.zipProgress.style.display = 'none';
-            setLoading(dom.analyzeZipBtn, false);
         }
     });
 
